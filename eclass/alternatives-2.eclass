@@ -22,27 +22,33 @@ RDEPEND="${DEPEND}
 alternatives_for() {
 	#echo alternatives_for "${@}"
 
-	(( $# >= 5 )) && (( ($#-3)%2 == 0)) || die "${FUNCNAME} requires exactly 3+N*2 arguments where N>=1"
-	local x dupl alternative=${1} provider=${2} importance=${3} index unique src target ret=0
+	(( $# >= 5 )) && (( ($#-3)%2 == 0)) || \
+		die "${FUNCNAME} requires exactly 3+N*2 arguments where N>=1"
+	local x dupl alternative=${1} provider=${2} importance=${3}
+	local index unique src target ret=0
 	shift 3
 
 	# make sure importance is a signed integer
-	if [[ -n ${importance} ]] && ! [[ ${importance} =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+	if [[ -n ${importance} ]] && ! [[ ${importance} =~ ^[0-9]+(\.[0-9]+)*$ ]]
+	then
 		eerror "Invalid importance (${importance}) detected"
 		((ret++))
 	fi
 
-	[[ -d "${ED}${ALTERNATIVES_DIR}/${alternative}/${provider}" ]] || dodir "${ALTERNATIVES_DIR}/${alternative}/${provider}"
+	[[ -d "${ED}${ALTERNATIVES_DIR}/${alternative}/${provider}" ]] || \
+		dodir "${ALTERNATIVES_DIR}/${alternative}/${provider}"
 
-	# keep track of provided alternatives for use in pkg_{postinst,prerm}. keep a mapping between importance and
-	# provided alternatives and make sure the former is set to only one value
+	# keep track of provided alternatives for use in pkg_{postinst,prerm}.
+	# keep a mapping between importance and provided alternatives
+	# and make sure the former is set to only one value
 	if ! has "${alternative}:${provider}" "${ALTERNATIVES_PROVIDED[@]}"; then
 		index=${#ALTERNATIVES_PROVIDED[@]}
 		ALTERNATIVES_PROVIDED+=( "${alternative}:${provider}" )
 		ALTERNATIVES_IMPORTANCE[index]=${importance}
-		[[ -n ${importance} ]] && echo "${importance}" > "${ED}${ALTERNATIVES_DIR}/${alternative}/${provider}/_importance"
+		[[ -n ${importance} ]] && echo "${importance}" > \
+			"${ED}${ALTERNATIVES_DIR}/${alternative}/${provider}/_importance"
 	else
-		for((index=0;index<${#ALTERNATIVES_PROVIDED[@]};index++)); do
+		for ((index=0; index<${#ALTERNATIVES_PROVIDED[@]}; index++)); do
 			if [[ ${alternative}:${provider} == ${ALTERNATIVES_PROVIDED[index]} ]]; then
 				if [[ -n ${ALTERNATIVES_IMPORTANCE[index]} ]]; then
 					if [[ -n ${importance} && ${ALTERNATIVES_IMPORTANCE[index]} != ${importance} ]]; then
@@ -51,7 +57,8 @@ alternatives_for() {
 					fi
 				else
 					ALTERNATIVES_IMPORTANCE[index]=${importance}
-					[[ -n ${importance} ]] && echo "${importance}" > "${ED}${ALTERNATIVES_DIR}/${alternative}/${provider}/_importance"
+					[[ -n ${importance} ]] && echo "${importance}" \
+						> "${ED}${ALTERNATIVES_DIR}/${alternative}/${provider}/_importance"
 				fi
 			fi
 		done
@@ -76,7 +83,8 @@ alternatives_for() {
 			dodir "${ALTERNATIVES_DIR}/${alternative}/${provider}${src%/*}"
 			dosym "${reltarget}" "${ALTERNATIVES_DIR}/${alternative}/${provider}${src}"
 
-			# say ${ED}/sbin/init exists and links to /bin/systemd (which doesn't exist yet)
+			# say ${ED}/sbin/init exists and links to /bin/systemd
+			# (which doesn't exist yet)
 			# the -e test will fail, so check for -L also
 			if [[ -e ${ED}${src} || -L ${ED}${src} ]]; then
 				local fulltarget=${target}
@@ -91,34 +99,25 @@ alternatives_for() {
 		shift 2
 	done
 
-	[[ ${ret} -eq 0 ]] || die "Errors detected for ${provider}, provided for ${alternative}"
-}
-
-cleanup_old_alternatives_module() {
-	local alt=${1} old_module="${EROOT%/}/usr/share/eselect/modules/${alt}.eselect"
-	if [[ -f "${old_module}" && "$(source "${old_module}" &>/dev/null; echo "${ALTERNATIVE}")" == "${alt}" ]]; then
-		local version="$(source "${old_module}" &>/dev/null; echo "${VERSION}")"
-		if [[ "${version}" == "0.1" || "${version}" == "20080924" ]]; then
-			echo rm "${old_module}"
-			rm "${old_module}" || eerror "rm ${old_module} failed"
-		fi
-	fi
+	[[ ${ret} -eq 0 ]] || \
+		die "Errors detected for ${provider}, provided for ${alternative}"
 }
 
 alternatives-2_pkg_postinst() {
-	local a alt provider module_version="20090908"
+	local a alt provider alt_dir module_version="20130222" oldp newp
 	for a in "${ALTERNATIVES_PROVIDED[@]}"; do
 		alt="${a%:*}"
 		provider="${a#*:}"
-		if [[ ! -f "${EROOT%/}/usr/share/eselect/modules/auto/${alt}.eselect" \
-			|| "$(source "${EROOT%/}/usr/share/eselect/modules/auto/${alt}.eselect" &>/dev/null; echo "${VERSION}")" \
-				-ne "${module_version}" ]]; then
-			#einfo "Creating alternatives module for ${alt}"
-			if [[ ! -d ${EROOT%/}/usr/share/eselect/modules/auto ]]; then
-				install -d "${EROOT%/}"/usr/share/eselect/modules/auto || eerror "Could not create eselect modules dir"
+		alt_dir="${EROOT%/}/usr/share/eselect/modules/auto"
+		if [[ ! -f "${alt_dir}/${alt}.eselect" \
+			|| "$(sed -n 's:VERSION=[\|\"]\(.*\)[\|\"]:\1:p' "${alt_dir}/${alt}.eselect")" \
+			-ne "${module_version}" ]]; then
+			einfo "Creating ${alt} eselect module"
+			if [[ ! -d ${alt_dir} ]]; then
+				install -d "${alt_dir}" || eerror "Could not create eselect modules directory"
 			fi
-			cat > "${EROOT%/}/usr/share/eselect/modules/auto/${alt}.eselect" <<-EOF
-				# This module was automatically generated by alternatives.eclass
+			cat > "${alt_dir}/${alt}.eselect" <<-EOF
+				# This module was automatically generated by alternatives-2.eclass
 				DESCRIPTION="Alternatives for ${alt}"
 				VERSION="${module_version}"
 				MAINTAINER="eselect@gentoo.org"
@@ -128,33 +127,40 @@ alternatives-2_pkg_postinst() {
 
 				inherit alternatives
 			EOF
-		fi
-
-		#echo eselect "${alt}" update "${provider}"
-		einfo "Creating ${provider} alternative module for ${alt}"
-		eselect "${alt}" update "${provider}"
-
-		cleanup_old_alternatives_module ${alt}
+			fi
+		oldp="$(eselect ${alt} show)"
+		eselect "${alt}" update "${provider}" || die "failed to update ${alt}"
+		newp="$(eselect ${alt} show)"
+		[[ ${oldp} != ${newp} ]] && einfo "Module ${alt} is now set to ${newp}"
 	done
 }
 
-alternatives-2_pkg_prerm() {
-	local a alt provider p ignore
-	[[ -n ${REPLACED_BY_ID} ]] || ignore=" --ignore"
+alternatives-2_pkg_postrm() {
+	local a alt provider ignore oldp newp
+	local autodir="${EROOT%/}/usr/share/eselect/modules/auto"
 	for a in "${ALTERNATIVES_PROVIDED[@]}"; do
 		alt="${a%:*}"
 		provider="${a#*:}"
-		#echo "Making sure ${alt} has a valid provider"
-		#echo eselect "${alt}" update${ignore} "${provider}"
-		eselect "${alt}" update${ignore} "${provider}" && continue
-		einfo "Removed ${provider} alternative module for ${alt}, current is $(eselect ${alt} show)"
-		if [[ $? -eq 2 ]]; then
-			einfo "Cleaning up unused alternatives module for ${alt}"
-			echo rm "${EROOT%/}/usr/share/eselect/modules/auto/${alt}.eselect"
-			rm "${EROOT%/}/usr/share/eselect/modules/auto/${alt}.eselect" ||
-				eerror rm "${EROOT%/}/usr/share/eselect/modules/auto/${alt}.eselect" failed
-		fi
+		oldp="$(eselect ${alt} show)"
+		eselect "${alt}" update "${provider}"
+		case $? in
+			0)
+				newp="$(eselect ${alt} show)"
+				[[ ${oldp} != ${newp} ]] && einfo "Module ${alt} is now set to ${newp}"
+				;;
+			2)
+				einfo "Removing unused eselect ${alt} module"
+				rm "${autodir}/${alt}.eselect" || \
+					eerror rm "${autodir}/${alt}.eselect" failed
+				;;
+			*)
+				eerror eselect "${alt}" update "${provider}" returned $?
+				die "failed to remove ${alt} module"
+				;;
+		esac
 	done
+	# remove possibly empty directory
+	find "${autodir}" -maxdepth 0 -empty | read && rmdir "${autodir}"
 }
 
-EXPORT_FUNCTIONS pkg_postinst pkg_prerm
+EXPORT_FUNCTIONS pkg_postinst pkg_postrm

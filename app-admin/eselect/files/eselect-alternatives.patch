@@ -1,8 +1,20 @@
-Index: bin/eselect.in
-===================================================================
---- bin/eselect.in	(revision 863)
-+++ bin/eselect.in	(working copy)
-@@ -22,10 +22,15 @@
+diff --git a/bin/Makefile.am b/bin/Makefile.am
+index 72b4812..1abd771 100644
+--- a/bin/Makefile.am
++++ b/bin/Makefile.am
+@@ -4,1 +4,1 @@ EXTRA_DIST = eselect.in
+ dosed = @SED@ -e 's,\@BASH\@,$(BASH),g' \
+	      -e 's,\@DATADIR\@,$(datadir),g' \
+	      -e 's,\@EPREFIX\@,$(EPREFIX),g' \
++	      -e 's,\@LIBEXECDIR\@,$(datadir),g' \
+	      -e 's,\@VERSION\@,$(VERSION),g'
+
+ % : %.in
+diff --git a/bin/eselect.in b/bin/eselect.in
+index 8fd1589..2ce15c1 100755
+--- a/bin/eselect.in
++++ b/bin/eselect.in
+@@ -22,10 +22,15 @@ ESELECT_DATA_PATH="@DATADIR@/eselect"
  # Where are modules installed by default?
  ESELECT_DEFAULT_MODULES_PATH="${ESELECT_DATA_PATH}/modules"
  
@@ -21,22 +33,10 @@ Index: bin/eselect.in
  
  # Look in this place for libraries
  ESELECT_CORE_PATH="${ESELECT_DATA_PATH}/libs"
-Index: bin/Makefile.am
-===================================================================
---- bin/Makefile.am	(revision 863)
-+++ bin/Makefile.am	(working copy)
-@@ -4,6 +4,7 @@
- dosed = @SED@ -e 's,\@BASH\@,$(BASH),g' \
- 	      -e 's,\@DATADIR\@,$(datadir),g' \
- 	      -e 's,\@EPREFIX\@,$(EPREFIX),g' \
-+	      -e 's,\@LIBEXECDIR\@,$(datadir),g' \
- 	      -e 's,\@VERSION\@,$(VERSION),g'
- 
- % : %.in
-Index: libs/Makefile.am
-===================================================================
---- libs/Makefile.am	(revision 863)
-+++ libs/Makefile.am	(working copy)
+diff --git a/libs/Makefile.am b/libs/Makefile.am
+index bab373e..e50c0ff 100644
+--- a/libs/Makefile.am
++++ b/libs/Makefile.am
 @@ -1,6 +1,7 @@
  eselectlibsdir = $(datadir)/$(PACKAGE_NAME)/libs/
  
@@ -45,7 +45,7 @@ Index: libs/Makefile.am
  	config.bash \
  	core.bash \
  	default.eselect \
-@@ -14,6 +15,7 @@
+@@ -14,6 +15,7 @@ eselectlibs_DATA = \
  	tests.bash
  
  EXTRA_DIST = \
@@ -53,7 +53,7 @@ Index: libs/Makefile.am
  	config.bash.in \
  	core.bash.in \
  	default.eselect.in \
-@@ -30,7 +32,8 @@
+@@ -30,7 +32,8 @@ dosed = @SED@ \
  	-e 's,\@SED\@,@SED@,g' \
  	-e 's,\@PORTAGEQ\@,@PORTAGEQ@,g' \
  	-e 's,\@ENV_UPDATE\@,@ENV_UPDATE@,g' \
@@ -63,19 +63,24 @@ Index: libs/Makefile.am
  
  %.bash : %.bash.in
  	@$(dosed) $< > $@
---- libs/alternatives.bash.in.orig	1970-01-01 01:00:00.000000000 +0100
-+++ libs/alternatives.bash.in	2011-09-06 18:55:43.000000000 +0100
-@@ -0,0 +1,550 @@
+diff --git a/libs/alternatives.bash.in b/libs/alternatives.bash.in
+new file mode 100644
+index 0000000..d8074eb
+--- /dev/null
++++ b/libs/alternatives.bash.in
+@@ -0,0 +1,554 @@
++# Copyright 2010-2013 Gentoo Foundation
++# Distributed under the terms of the GNU General Public License v2
++#  $
++
 +# Copyright 2008 Mike Kelly
 +# Copyright 2009 David Leverton
 +# Copyright 2010 Bo Ørsted Andresen
-+# 2010: Adapted to eselect Sebastien Fabbro (who doesn't like copyrights)
-+# Distributed under the terms of the GNU General Public License v2
 +
 +inherit config output path-manipulation
 +
 +ALTERNATIVESDIR_ROOTLESS="@sysconfdir@/env.d/alternatives"
-+ALTERNATIVESDIR="${EROOT}${ALTERNATIVESDIR_ROOTLESS}"
++ALTERNATIVESDIR="${EROOT%/}${ALTERNATIVESDIR_ROOTLESS}"
 +
 +get_current_provider() {
 +    local dieprefix="Could not determine current provider for ${ALTERNATIVE}"
@@ -207,7 +212,7 @@ Index: libs/Makefile.am
 +
 +    local errors symlink rootsymlink
 +    while read -r -d '' symlink; do
-+        rootsymlink="${EROOT}${symlink}"
++        rootsymlink="${EROOT%/}${symlink}"
 +        rootsymlink=${rootsymlink//+(\/)/\/}
 +        echo "${rootsymlink}"
 +        if [[ -L ${rootsymlink} ]]; then
@@ -244,7 +249,7 @@ Index: libs/Makefile.am
 +
 +describe_set_options() {
 +    echo "--force : overwrite or remove existing non-symlink files (but not directories) if necessary"
-+    echo "<provider> : the name of the provider to use or the index of the provider preceeded by a dash"
++    echo "<provider> : the name of the provider to use or the index of the provider"
 +}
 +
 +do_set() {
@@ -255,11 +260,12 @@ Index: libs/Makefile.am
 +        force=yes
 +        shift
 +    fi
-+
-+    if [[ ${1} == -+([[:digit:]]) ]]; then
++    local idx=${1}
++    if [[ ${1} == +(-|+|[[:digit:]]) ]]; then
++	idx=${1#+(-|+)}
 +        providers=( $(get_providers) )
-+        (( ${1#-} <= ${#providers[@]} )) || die -q "The given provider with index (${1#-}) does not exist"
-+        provider=${providers[${1#-}-1]}
++        (( ${idx} <= ${#providers[@]} )) || die -q "The given provider with index (${idx}) does not exist"
++        provider=${providers[${idx}-1]}
 +    else
 +        provider="${1}"
 +    fi
@@ -269,8 +275,8 @@ Index: libs/Makefile.am
 +    if [[ ! -d ${ALTERNATIVESDIR}/${ALTERNATIVE}/${provider} ]] ; then
 +        if is_number ${provider} ; then
 +            providers=( $(get_providers) )
-+            [[ -n ${providers[${1#-}-1]} ]] &&
-+                die -q "The given provider (${provider}) does not exist, did you mean -${provider} (${providers[${1#-}-1]})?"
++            [[ -n ${providers[${idx}-1]} ]] && \
++		die -q "The given provider (${provider}) does not exist"
 +        fi
 +        die -q "The given provider (${provider}) does not exist"
 +    fi
@@ -310,22 +316,22 @@ Index: libs/Makefile.am
 +
 +            if ( LC_ALL=C; [[ ${newsymlinks[new_i]} < ${oldsymlinks[old_i]} ]] ); then
 +                if [[ ${pass} == check ]]; then
-+                    if [[ -L ${EROOT}${oldsymlinks[old_i]} ]]; then
++                    if [[ -L ${EROOT%/}${oldsymlinks[old_i]} ]]; then
 +                        :
-+                    elif [[ -d ${EROOT}${oldsymlinks[old_i]} ]]; then
-+                        write_error_msg "Can't remove ${EROOT}${oldsymlinks[old_i]}: is a directory${force:+ which is a fatal error that cannot be ignored by --force}"
++                    elif [[ -d ${EROOT%/}${oldsymlinks[old_i]} ]]; then
++                        write_error_msg "Can't remove ${EROOT%/}${oldsymlinks[old_i]}: is a directory${force:+ which is a fatal error that cannot be ignored by --force}"
 +                        errors=yes
-+                    elif [[ -e ${EROOT}${oldsymlinks[old_i]} ]]; then
++                    elif [[ -e ${EROOT%/}${oldsymlinks[old_i]} ]]; then
 +                        if [[ -n ${force} ]]; then
-+                            write_warning_msg "Removing ${EROOT}${oldsymlinks[old_i]} due to --force: is not a symlink"
++                            write_warning_msg "Removing ${EROOT%/}${oldsymlinks[old_i]} due to --force: is not a symlink"
 +                        else
-+                            write_error_msg "Refusing to remove ${EROOT}${oldsymlinks[old_i]}: is not a symlink (use --force to override)"
++                            write_error_msg "Refusing to remove ${EROOT%/}${oldsymlinks[old_i]}: is not a symlink (use --force to override)"
 +                            errors=yes
 +                        fi
 +                    fi
 +
 +                elif [[ ${pass} == perform ]]; then
-+                    rm -f "${ROOT}${oldsymlinks[old_i]}" || die "${dieprefix}: rm failed"
++                    rm -f "${EROOT%/}${oldsymlinks[old_i]}" || die "${dieprefix}: rm failed"
 +                else
 +                    die "${dieprefix}: unknown \${pass} ${pass}???"
 +                fi
@@ -340,23 +346,23 @@ Index: libs/Makefile.am
 +                done
 +
 +                if [[ ${pass} == check ]]; then
-+                    if [[ -L ${EROOT}${newsymlinks[new_i]} ]]; then
++                    if [[ -L ${EROOT%/}${newsymlinks[new_i]} ]]; then
 +                        :
-+                    elif [[ -d ${EROOT}${newsymlinks[new_i]} ]]; then
-+                        write_error_msg "Can't overwrite ${EROOT}${newsymlinks[new_i]}: is a directory${force:+ which is a fatal error that cannot be ignored by --force}"
++                    elif [[ -d ${EROOT%/}${newsymlinks[new_i]} ]]; then
++                        write_error_msg "Can't overwrite ${EROOT%/}${newsymlinks[new_i]}: is a directory${force:+ which is a fatal error that cannot be ignored by --force}"
 +                        errors=yes
-+                    elif [[ -e ${EROOT}${newsymlinks[new_i]} ]]; then
++                    elif [[ -e ${EROOT%/}${newsymlinks[new_i]} ]]; then
 +                        if [[ -n ${force} ]]; then
-+                            write_warning_msg "Overwriting ${EROOT}${newsymlinks[new_i]} due to --force: is not a symlink"
++                            write_warning_msg "Overwriting ${EROOT%/}${newsymlinks[new_i]} due to --force: is not a symlink"
 +                        else
-+                            write_error_msg "Refusing to overwrite ${EROOT}${newsymlinks[new_i]}: is not a symlink (use --force to override)"
++                            write_error_msg "Refusing to overwrite ${EROOT%/}${newsymlinks[new_i]}: is not a symlink (use --force to override)"
 +                            errors=yes
 +                        fi
 +                    fi
 +
 +                elif [[ ${pass} == perform ]]; then
-+                    mkdir -p "${EROOT}${newsymlinks[new_i]%/*}" || die "${dieprefix}: mkdir -p failed"
-+                    ln -snf "${target#/}" "${EROOT}${newsymlinks[new_i]}" || die "${dieprefix}: ln -snf failed"
++                    mkdir -p "${EROOT%/}${newsymlinks[new_i]%/*}" || die "${dieprefix}: mkdir -p failed"
++                    ln -snf "${target#/}" "${EROOT%/}${newsymlinks[new_i]}" || die "${dieprefix}: ln -snf failed"
 +                else
 +                    die "${dieprefix}: unknown \${pass} ${pass}???"
 +                fi
@@ -436,7 +442,7 @@ Index: libs/Makefile.am
 +        # verify existing provider's symlinks
 +        local p= bad=0
 +        while read -r -d '' p ; do
-+            [[ -L "${EROOT}${p}" && -e "${EROOT}${p}" ]] || (( bad++ ))
++            [[ -L "${EROOT%/}${p}" && -e "${EROOT%/}${p}" ]] || (( bad++ ))
 +        done < "${ALTERNATIVESDIR}/${ALTERNATIVE}/_current_list"
 +
 +        [[ "${bad}" -eq 0 ]] && return 0
@@ -502,22 +508,22 @@ Index: libs/Makefile.am
 +        while read -r -d '' symlink; do
 +            one=true
 +            if [[ ${pass} == check ]]; then
-+                if [[ -L ${EROOT}${symlink} ]]; then
++                if [[ -L ${EROOT%/}${symlink} ]]; then
 +                    :
-+                elif [[ -d ${EROOT}${symlink} ]]; then
-+                    write_error_msg "Can't remove ${EROOT}${symlink}: is a directory${force:+ which is a fatal error that cannot be ignored by --force}"
++                elif [[ -d ${EROOT%/}${symlink} ]]; then
++                    write_error_msg "Can't remove ${EROOT%/}${symlink}: is a directory${force:+ which is a fatal error that cannot be ignored by --force}"
 +                    errors=yes
-+                elif [[ -e ${EROOT}${symlink} ]]; then
++                elif [[ -e ${EROOT%/}${symlink} ]]; then
 +                    if [[ -n ${force} ]]; then
-+                        write_warning_msg "Removing ${EROOT}${symlink} due to --force: is not a symlink"
++                        write_warning_msg "Removing ${EROOT%/}${symlink} due to --force: is not a symlink"
 +                    else
-+                        write_error_msg "Refusing to remove ${EROOT}${symlink}: is not a symlink (use --force to override)"
++                        write_error_msg "Refusing to remove ${EROOT%/}${symlink}: is not a symlink (use --force to override)"
 +                        errors=yes
 +                    fi
 +                fi
 +
 +            elif [[ ${pass} == perform ]]; then
-+                rm -f "${EROOT}${symlink}" || die "${dieprefix}: rm failed"
++                rm -f "${EROOT%/}${symlink}" || die "${dieprefix}: rm failed"
 +            else
 +                die "${dieprefix}: unknown \${pass} ${pass}???"
 +            fi
@@ -561,11 +567,12 @@ Index: libs/Makefile.am
 +        syntax=csh
 +        shift
 +    fi
-+
-+    if [[ ${1} == -+([[:digit:]]) ]]; then
++    local idx=${1}
++    if [[ ${1} == +(-|+|[[:digit:]]) ]]; then
++	idx=${1#+(-|+)}
 +        providers=( $(get_providers) )
-+        (( ${1#-} <= ${#providers[@]} )) || die -q "The given provider with index (${1#-}) does not exist"
-+        provider=${providers[${1#-}-1]}
++        (( ${idx} <= ${#providers[@]} )) || die -q "The given provider with index (${idx}) does not exist"
++        provider=${providers[${idx}-1]}
 +    else
 +        provider="${1}"
 +    fi
@@ -574,16 +581,16 @@ Index: libs/Makefile.am
 +    if [[ ! -d ${ALTERNATIVESDIR}/${ALTERNATIVE}/${provider} ]] ; then
 +        if is_number ${provider} ; then
 +            providers=( $(get_providers) )
-+            [[ -n ${providers[${1#-}-1]} ]] &&
-+                die -q "The given provider (${provider}) does not exist, did you mean -${provider} (${providers[${1#-}-1]})?"
++            [[ -n ${providers[${idx}-1]} ]] &&
++                die -q "The given provider (${provider}) does not exist"
 +        fi
 +        die -q "The given provider (${provider}) does not exist"
 +    fi
 +
 +    local variables=( PATH LD_LIBRARY_PATH MANPATH )
 +    [[ -n ${!default_*} ]] && local ${!default_*}
-+    local default_LD_LIBRARY_PATH=$(grep '^[^#]' "${EROOT}"/etc/ld.so.conf | tr '\n' ':')/lib:/usr/lib
-+    local default_MANPATH=$(MANPATH= man -C"${EROOT}"/etc/man.conf -w)
++    local default_LD_LIBRARY_PATH=$(grep '^[^#]' "${EROOT%/}"/etc/ld.so.conf | tr '\n' ':')/lib:/usr/lib
++    local default_MANPATH=$(MANPATH= man -C"${EROOT%/}"/etc/man.conf -w)
 +
 +    local var IFS=:
 +    for var in "${variables[@]}"; do
