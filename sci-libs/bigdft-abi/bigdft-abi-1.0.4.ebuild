@@ -19,7 +19,7 @@ KEYWORDS="~amd64 ~x86 ~amd64-linux"
 IUSE="cuda doc etsf_io mpi netcdf openmp opencl test"
 
 RDEPEND="
-	>=sci-libs/libxc-2.0.1[fortran]
+	>=sci-libs/libxc-1.2.0-r1[fortran]
 	virtual/blas
 	virtual/fortran
 	virtual/lapack
@@ -39,6 +39,7 @@ DEPEND="${RDEPEND}
 	doc? ( virtual/latex-base )
 	${PYTHON_DEPS}
 	dev-python/pyyaml[libyaml]
+	dev-util/gdbus-codegen
 	app-arch/tar
 	app-arch/gzip"
 
@@ -75,9 +76,6 @@ pkg_setup() {
 }
 
 src_prepare() {
-# 	epatch \
-# 		"${FILESDIR}"/"${P}"-nolib_mods.patch
-#
 	tar -xjf "${FILESDIR}"/"${P}"-tests.tar.bz2 -C "${S}"/tests/DFT/
 	eautoreconf
 }
@@ -90,8 +88,8 @@ src_configure() {
 		local _fc=$(tc-getFC)
 
 		cat <<- EOF > "${fcode}"
-			   call omp_get_num_threads
-			   end
+		1     call omp_get_num_threads
+		2     end
 		EOF
 
 		for openmp in -fopenmp -xopenmp -openmp -mp -omp -qsmp=omp; do
@@ -107,6 +105,7 @@ src_configure() {
 	filter-flags '-m*' '-O*' "-pipe"
 	local nvcflags="${CFLAGS}"
 	_filter-var nvcflags '-m*' '-O*' "-pipe" "-W*"
+	use cuda && filter-ldflags '-m*' '-O*' "-pipe" "-W*"
 	local myeconfargs=(
 		$(use_enable mpi)
 		--enable-optimised-convolution

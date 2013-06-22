@@ -20,7 +20,7 @@ KEYWORDS="~amd64 ~x86 ~amd64-linux"
 IUSE="cuda doc etsf_io mpi netcdf openmp opencl test"
 
 RDEPEND="
-	>=sci-libs/libxc-1.0[fortran]
+	>=sci-libs/libxc-1.2.0-r1[fortran]
 	virtual/blas
 	virtual/fortran
 	virtual/lapack
@@ -40,6 +40,7 @@ DEPEND="${RDEPEND}
 	doc? ( virtual/latex-base )
 	${PYTHON_DEPS}
 	dev-python/pyyaml[libyaml]
+	dev-util/gdbus-codegen
 	app-arch/tar
 	app-arch/gzip"
 
@@ -81,6 +82,7 @@ src_configure() {
 	filter-flags '-m*' '-O*' "-pipe"
 	local nvcflags="${CFLAGS}"
 	_filter-var nvcflags '-m*' '-O*' "-pipe" "-W*"
+	use cuda && filter-ldflags '-m*' '-O*' "-pipe" "-W*"
 	local myeconfargs=(
 		$(use_enable mpi)
 		--enable-optimised-convolution
