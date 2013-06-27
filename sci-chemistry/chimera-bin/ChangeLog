@@ -1,6 +1,10 @@
 # ChangeLog for sci-chemistry/chimera-bin
-# Copyright 1999-2012 Gentoo Foundation; Distributed under the GPL v2
+# Copyright 1999-2013 Gentoo Foundation; Distributed under the GPL v2
 # $Header: $
+
+  27 Jun 2013; Justin Lecher <jlec@gentoo.org> -chimera-bin-1.6.2.ebuild,
+  +chimera-bin-1.8.ebuild, metadata.xml:
+  Version and EAPI Bump; move to python-single-r1 eclass
 
   14 Nov 2012; Justin Lecher <jlec@gentoo.org> chimera-bin-1.6.2.ebuild:
   Add dep on virtual/opengl
