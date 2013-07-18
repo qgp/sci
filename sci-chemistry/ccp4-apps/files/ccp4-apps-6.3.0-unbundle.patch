@@ -1,0 +1,123 @@
+From 40f0a02e2d2192e17af76481054e0f256061e1e6 Mon Sep 17 00:00:00 2001
+Message-Id: <40f0a02e2d2192e17af76481054e0f256061e1e6.1370784716.git.jlec@gentoo.org>
+From: Justin Lecher <jlec@gentoo.org>
+Date: Sun, 9 Jun 2013 14:59:26 +0200
+Subject: [PATCH] we have external packages Signed-off-by: Justin Lecher
+ <jlec@gentoo.org>
+
+---
+ CMakeLists.txt | 65 ++--------------------------------------------------------
+ 1 file changed, 2 insertions(+), 63 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1ba00a2..6983fb3 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -86,9 +86,6 @@ add_executable(rsps
+     src/rsps_/hlptxt.f src/rsps_/veclib.f src/rsps_/forlib.f)
+ target_link_libraries(rsps ${CCP4F_LIBRARY} ${CCP4C_LIBRARY})
+ 
+-add_executable(scala src/scala_/scala.f)
+-target_link_libraries(scala ${CCP4F_LIBRARY} ${CCP4C_LIBRARY}
+-                            ${LAPACK_LIBRARIES})
+ 
+ file(GLOB dm_sources src/dm_/*.f)
+ add_executable(dm ${dm_sources})
+@@ -136,34 +133,6 @@ target_link_libraries(tlsanl ${CCP4F_LIBRARY} ${CCP4C_LIBRARY})
+ add_executable(tlsextract src/restrain_/tlsextract.c)
+ target_link_libraries(tlsextract ${CCP4C_LIBRARY} m)
+ 
+-# molrep
+-add_executable(molrep src/molrep_/main_molrep_mtz.f
+-                      src/molrep_/molrep.f
+-                      src/molrep_/molrep1.f
+-                      src/molrep_/molrep2.f
+-                      src/molrep_/molrep3.f
+-                      src/molrep_/molrep_prog.f
+-                      src/molrep_/molrep_prog1.f
+-                      src/molrep_/molrep_prog2.f
+-                      src/molrep_/molrep_subr.f
+-                      src/molrep_/molrep_sym_ccp4.f
+-                      src/molrep_/molrep_unix_ccp4.f)
+-target_link_libraries(molrep ${CCP4F_LIBRARY} ${CCP4C_LIBRARY})
+-
+-# sfcheck
+-add_executable(sfcheck src/sfcheck_/main_sfcheck_ccp4.f
+-                       src/sfcheck_/sfcheck.f
+-                       src/sfcheck_/sfch_prog.f
+-                       src/sfcheck_/sfch_graph_1.f
+-                       src/sfcheck_/sfch_graph_2.f
+-                       src/sfcheck_/sfch_graph_3.f
+-                       src/sfcheck_/sfch_graph_4.f
+-                       src/sfcheck_/sfch_graph_5.f
+-                       src/sfcheck_/sfch_subr.f
+-                       src/sfcheck_/sfch_unix_ccp4.f
+-                       src/sfcheck_/sfch_sym_ccp4.f)
+-target_link_libraries(sfcheck ${CCP4F_LIBRARY} ${CCP4C_LIBRARY})
+-
+ 
+ # balbes utility progs
+ add_executable(search_DB  src/balbes_progs/main_search_DB.f
+@@ -247,26 +216,6 @@ add_executable(pmf src/crunch2_/pmf_program.f)
+ target_link_libraries(pmf ${CCP4F_LIBRARY} ${CCP4C_LIBRARY})
+ 
+ 
+-# procheck
+-
+-foreach(p pplot gfac2pdb tplot mplot)
+-  add_executable(${p} src/procheck/${p}.f src/procheck/ps.f)
+-  #target_link_libraries(${p} ${CCP4F_LIBRARY} ${CCP4C_LIBRARY})
+-endforeach(p)
+-add_executable(probplot src/procheck/bplot.f src/procheck/ps.f)
+-
+-foreach(p anglen secstr rmsdev)
+-  add_executable(${p} src/procheck/${p}.f)
+-endforeach(p)
+-target_link_libraries(secstr ${CCP4F_LIBRARY} ${CCP4C_LIBRARY}) # uses lenstr()
+-
+-add_executable(proclean src/procheck/clean.f)
+-target_link_libraries(proclean ${CCP4F_LIBRARY} ${CCP4C_LIBRARY})
+-
+-add_executable(nb src/procheck/nb.c)
+-target_link_libraries(nb m)
+-
+-
+ # solomon (part of crank)
+ file(GLOB solomon_sources src/solomon_/*.c)
+ add_executable(solomon ${solomon_sources})
+@@ -374,16 +323,13 @@ endforeach(p)
+ 
+ install(TARGETS ${FTARGETS} ${FTARGETS_WITH_MMDB} r500 truncate
+                 cif2mtz anisoanl ffjoin mlphare
+-                rsps scala dm dmmulti stereo mapmask maprot ncsmask
++                rsps dm dmmulti stereo mapmask maprot ncsmask
+                 chef doser mat2symop symop2mat sftools tlsanl tlsextract
+-                molrep sfcheck
+                 search_DB get_structure_DB f2cif check_file_DB check_cell_sg
+                 alt_sg_list solution_check get_trans pdb_pack pdb2s align_DB
+                 get_chain save_seg_id domain2chain
+                 topp toplist pdbhtf dyndom sc combat fffear dtrek2scala
+                 crunch2 pmf
+-                pplot gfac2pdb tplot mplot probplot
+-                anglen secstr rmsdev secstr proclean nb
+                 solomon pltdev binsort
+                 mtzdiff mapdiff pdbdiff
+                 mtz2cif symconv pdbcur ncont coord_format pdb_merge chainsaw
+@@ -426,13 +372,6 @@ install(PROGRAMS
+         etc/ccp4keys              etc/procheck       etc/procheck_comp
+         DESTINATION etc)
+ 
+-install(FILES etc/COPYING DESTINATION etc)
+-
+ # Java (we have sources, but jars are already in the repo)
+-install(PROGRAMS src/JLogGraph.jar src/OpenAstexViewer.jar
++install(PROGRAMS src/JLogGraph.jar 
+         DESTINATION bin)
+-
+-# html docs, put it into $prefix/html
+-install(DIRECTORY html DESTINATION .
+-        PATTERN "CVS" EXCLUDE)
+-
+-- 
+1.8.2.1
+

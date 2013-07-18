@@ -1,0 +1,29 @@
+From f27f207068b4ecc46f8716fc902e5985046dd299 Mon Sep 17 00:00:00 2001
+Message-Id: <f27f207068b4ecc46f8716fc902e5985046dd299.1370788503.git.jlec@gentoo.org>
+In-Reply-To: <40f0a02e2d2192e17af76481054e0f256061e1e6.1370788503.git.jlec@gentoo.org>
+References: <40f0a02e2d2192e17af76481054e0f256061e1e6.1370788503.git.jlec@gentoo.org>
+From: Justin Lecher <jlec@gentoo.org>
+Date: Sun, 9 Jun 2013 16:34:43 +0200
+Subject: [PATCH 2/2] install data to share Signed-off-by: Justin Lecher
+ <jlec@gentoo.org>
+
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6983fb3..a6abb22 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -357,7 +357,7 @@ install(DIRECTORY share/smartie DESTINATION share
+         PATTERN "*.log" EXCLUDE)
+ 
+ # what fontunpack.for does in lib/data?
+-install(DIRECTORY lib/data DESTINATION lib
++install(DIRECTORY lib/data DESTINATION share
+         PATTERN "CVS" EXCLUDE
+         PATTERN "Makefile.in" EXCLUDE)
+ 
+-- 
+1.8.2.1
+
