@@ -80,7 +80,7 @@ CDEPEND="
 			dev-qt/qtsvg:4
 			dev-qt/qtwebkit:4
 			dev-qt/qtxmlpatterns:4 )
-			x11-libs/libXft
+		x11-libs/libXft
 		)
 	afs? ( net-fs/openafs )
 	avahi? ( net-dns/avahi )
