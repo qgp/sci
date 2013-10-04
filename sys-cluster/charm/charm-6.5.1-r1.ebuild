@@ -24,13 +24,14 @@ DEPEND="
 		>=app-text/poppler-0.12.3-r3[utils]
 		dev-tex/latex2html
 		virtual/tex-base
-		>=dev-python/beautifulsoup-4
+		>=dev-python/beautifulsoup-4[${PYTHON_USEDEP}]
+		dev-python/lxml[${PYTHON_USEDEP}]
 		media-libs/netpbm
 		${PYTHON_DEPS}
 	)"
 
 REQUIRED_USE="
-    doc? ( ${PYTHON_REQUIRED_USE} )
+	doc? ( ${PYTHON_REQUIRED_USE} )
 	cmkopt? ( !charmdebug !charmtracing )
 	charmproduction? ( !charmdebug !charmtracing )"
 
@@ -98,6 +99,7 @@ src_prepare() {
 	epatch "${FILESDIR}/charm-6.5.1-cleanup-config.patch"
 	epatch "${FILESDIR}/charm-6.5.1-CkReductionMgr.patch"
 	epatch "${FILESDIR}/charm-6.5.1-fix-string-parsing.patch"
+	epatch "${FILESDIR}/charm-6.5.1-fix-navmenuGenerator.patch"
 }
 
 src_compile() {
@@ -110,10 +112,9 @@ src_compile() {
 	# make pdf/html docs
 	if use doc; then
 		python-single-r1_pkg_setup
-		python_fix_shebang ${S}/doc
+		python_fix_shebang "${S}/doc"
 		einfo "forcing ${EPYTHON}"
-		einfo "running ./build doc ${mybuildoptions}"
-		./build doc ${mybuildoptions} || die "Failed to build charm++ documentation"
+		emake -j1 -C doc/charm++
 	fi
 }
 
@@ -190,13 +191,13 @@ src_install() {
 
 	# Install pdf/html docs
 	if use doc; then
-		cd "${S}"/doc
+		cd "${S}/doc/charm++"
 		# Install pdfs.
 		insinto /usr/share/doc/${PF}/pdf
-		doins  doc/pdf/*
+		doins  *.pdf
 		# Install html.
 		docinto html
-		dohtml -r doc/html/*
+		dohtml -r manual/*
 	fi
 }
 
