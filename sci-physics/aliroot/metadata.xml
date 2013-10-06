@@ -7,4 +7,11 @@
 </maintainer>
 <longdescription lang="en">
 </longdescription>
+<use>
+	<flag name="alien">enable AliEn support</flag>
+	<flag name="geant3">enable Geant3 support</flag>
+	<flag name="geant4">enable Geant4 support</flag>
+	<flag name="fluka">enable Fluka support</flag>
+	<flag name="fastjet">enable FastJet support</flag>
+</use>
 </pkgmetadata>
