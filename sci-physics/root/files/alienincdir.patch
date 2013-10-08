@@ -1,0 +1,14 @@
+--- net/alien/Module.mk~	2013-06-26 17:05:06.000000000 +0200
++++ net/alien/Module.mk	2013-10-08 14:23:40.360000000 +0200
+@@ -30,7 +30,10 @@
+ # Include paths
+ ALIENINCEXTRA := $(XROOTDDIRI:%=-I%)
+ ifneq ($(EXTRA_XRDFLAGS),)
+-ALIENINCEXTRA += -Iproof/proofd/inc -I$(ALIENINCDIR)
++ALIENINCEXTRA += -Iproof/proofd/inc
++endif
++ifneq ($(ALIENINCDIR),)
++ALIENINCEXTRA += -I$(ALIENINCDIR)
+ endif
+ 
+ ifeq ($(HASXRD),yes)

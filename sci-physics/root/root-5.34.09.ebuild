@@ -37,14 +37,15 @@ SRC_URI="${SRC_URI}
 			http://root.cern.ch/drupal/sites/all/themes/newsflash/images/blue/root-banner.png
 			http://root.cern.ch/drupal/sites/all/themes/newsflash/images/info.png ) )"
 
-SLOT="0"
+SLOT="${PV}"
 LICENSE="LGPL-2.1"
-IUSE="+X afs avahi -c++0x doc emacs examples fits fftw graphviz htmldoc
+IUSE="+X afs alien avahi -c++0x doc emacs examples fits fftw graphviz htmldoc
 	kerberos ldap +math +metric mpi mysql odbc +opengl openmp oracle postgres
 	prefix pythia6 pythia8 python qt4 +reflex ruby ssl xinetd xml xrootd"
 
 REQUIRED_USE="
 	!X? ( !opengl !qt4 )
+	alien ( xrootd )
 	htmldoc? ( doc )
 	mpi? ( math !openmp )
 	openmp? ( math !mpi )
@@ -83,6 +84,7 @@ CDEPEND="
 		x11-libs/libXft
 		)
 	afs? ( net-fs/openafs )
+	alien? ( net-libs/xrootd-xalienfs )
 	avahi? ( net-dns/avahi )
 	emacs? ( virtual/emacs )
 	fits? ( sci-libs/cfitsio )
@@ -121,7 +123,7 @@ pkg_setup() {
 	use python && python-single-r1_pkg_setup
 	echo
 	elog "There are extra options on packages not yet in Gentoo:"
-	elog "AliEn, castor, Chirp, dCache, gfal, gLite, Globus,"
+	elog "castor, Chirp, dCache, gfal, gLite, Globus,"
 	elog "HDFS, Monalisa, MaxDB/SapDB, SRP."
 	elog "You can use the env variable EXTRA_ECONF variable for this."
 	elog "For example, for SRP, you would set: "
@@ -158,7 +160,8 @@ src_prepare() {
 		"${FILESDIR}"/${PN}-${PATCH_PV2}-afs.patch \
 		"${FILESDIR}"/${PN}-${PATCH_PV2}-cfitsio.patch \
 		"${FILESDIR}"/${PN}-${PATCH_PV2}-chklib64.patch \
-		"${FILESDIR}"/${PN}-${PATCH_PV2}-dotfont.patch
+		"${FILESDIR}"/${PN}-${PATCH_PV2}-dotfont.patch \
+		"${FILESDIR}"/alienincdir.patch
 
 	# make sure we use system libs and headers
 	rm montecarlo/eg/inc/cfortran.h README/cfortran.doc || die
@@ -246,6 +249,7 @@ src_configure() {
 		$(use_enable X asimage) \
 		$(use_enable X xft) \
 		$(use_enable afs) \
+		$(use_enable alien) \
 		$(use_enable avahi bonjour) \
 		$(use_enable fits fitsio) \
 		$(use_enable fftw fftw3) \
