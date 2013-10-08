@@ -45,7 +45,7 @@ src_configure ()
 
 	# ROOTSYS is not available for a ROOT system installation
 	# setting dummy value for ROOTSYS to make cmake happy
-	export ROOTSYS="/tmp"
+	# export ROOTSYS="/tmp"
 
 	# aliroot does not compile with --as-needed
 	filter-ldflags -Wl,--as-needed
@@ -53,6 +53,12 @@ src_configure ()
 	local mycmakeargs=(-DCMAKE_INSTALL_PREFIX="${ALICE_INSTALL}")
 
 	cmake-utils_src_configure
+}
+
+src_prepare ()
+{
+	epatch "${FILESDIR}/rootsys.patch"
+	default
 }
 
 src_install ()

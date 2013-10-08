@@ -1,0 +1,15 @@
+--- cmake/FindROOT.cmake.orig	2013-10-08 13:18:38.850000000 +0200
++++ cmake/FindROOT.cmake	2013-10-08 13:18:58.630000000 +0200
+@@ -5,12 +5,6 @@
+ 
+ cmake_minimum_required(VERSION 2.8.4 FATAL_ERROR)
+ 
+-set(ROOTSYS $ENV{ROOTSYS} CACHE STRING "" FORCE)
+-if(NOT ROOTSYS)
+-  message(FATAL_ERROR "Environment variable $ROOTSYS is not set !")
+-else()
+-  get_filename_component(ROOTSYS "${ROOTSYS}" REALPATH)
+-endif(NOT ROOTSYS)
+ find_program(ROOT_CONFIG NAMES root-config)
+ find_program(ROOTCINT NAMES rootcint)
+ if(NOT ROOT_CONFIG)
