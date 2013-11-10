@@ -16,13 +16,14 @@ fi;
 
 DESCRIPTION="ALICE computing framework"
 HOMEPAGE="http://aliweb.cern.ch/Offline"
+SRC_URI=""
 
 LICENSE="ALICE"
 SLOT="0"
 KEYWORDS="~x86 ~amd64"
 IUSE="alien geant3 geant4 fluka fastjet"
 
-DEPEND=""
+DEPEND="alien? ( sci-physics/root[alien] )"
 RDEPEND="${DEPEND}"
 
 src_unpack ()
