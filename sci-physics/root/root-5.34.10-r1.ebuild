@@ -1,6 +1,6 @@
 # Copyright 1999-2013 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/sci-physics/root/root-5.34.08.ebuild,v 1.2 2013/06/11 16:29:51 bicatali Exp $
+# $Header: /var/cvsroot/gentoo-x86/sci-physics/root/root-5.34.09.ebuild,v 1.2 2013/09/05 19:44:52 mgorny Exp $
 
 EAPI=5
 
@@ -14,7 +14,7 @@ else
 	KEYWORDS="~amd64 ~x86 ~amd64-linux ~x86-linux"
 fi
 
-PYTHON_COMPAT=( python2_{5,6,7} )
+PYTHON_COMPAT=( python2_{6,7} )
 inherit elisp-common eutils fdo-mime fortran-2 multilib python-single-r1 toolchain-funcs user ${_GIT} versionator
 
 ROOFIT_DOC_PV=2.91-33
@@ -37,15 +37,14 @@ SRC_URI="${SRC_URI}
 			http://root.cern.ch/drupal/sites/all/themes/newsflash/images/blue/root-banner.png
 			http://root.cern.ch/drupal/sites/all/themes/newsflash/images/info.png ) )"
 
-SLOT="${PV}"
+SLOT="0"
 LICENSE="LGPL-2.1"
-IUSE="+X afs alien avahi -c++0x doc emacs examples fits fftw graphviz htmldoc
+IUSE="+X afs avahi c++0x doc emacs examples fits fftw graphviz htmldoc
 	kerberos ldap +math +metric mpi mysql odbc +opengl openmp oracle postgres
-	prefix pythia6 pythia8 python qt4 +reflex ruby ssl xinetd xml xrootd"
+	prefix pythia6 pythia8 python qt4 +reflex ruby sqlite ssl xinetd xml xrootd"
 
 REQUIRED_USE="
 	!X? ( !opengl !qt4 )
-	alien ( xrootd )
 	htmldoc? ( doc )
 	mpi? ( math !openmp )
 	openmp? ( math !mpi )
@@ -81,10 +80,9 @@ CDEPEND="
 			dev-qt/qtsvg:4
 			dev-qt/qtwebkit:4
 			dev-qt/qtxmlpatterns:4 )
-		x11-libs/libXft
+			x11-libs/libXft
 		)
 	afs? ( net-fs/openafs )
-	alien? ( net-libs/xrootd-xalienfs )
 	avahi? ( net-dns/avahi )
 	emacs? ( virtual/emacs )
 	fits? ( sci-libs/cfitsio )
@@ -103,6 +101,7 @@ CDEPEND="
 	ruby? (
 			dev-lang/ruby
 			dev-ruby/rubygems )
+	sqlite? ( dev-db/sqlite:3 )
 	ssl? ( dev-libs/openssl )
 	xml? ( dev-libs/libxml2 )
 	xrootd? ( >=net-libs/xrootd-3.2.0 )"
@@ -123,7 +122,7 @@ pkg_setup() {
 	use python && python-single-r1_pkg_setup
 	echo
 	elog "There are extra options on packages not yet in Gentoo:"
-	elog "castor, Chirp, dCache, gfal, gLite, Globus,"
+	elog "Afdsmgrd, AliEn, castor, Chirp, dCache, gfal, Globus, gLite,"
 	elog "HDFS, Monalisa, MaxDB/SapDB, SRP."
 	elog "You can use the env variable EXTRA_ECONF variable for this."
 	elog "For example, for SRP, you would set: "
@@ -160,8 +159,7 @@ src_prepare() {
 		"${FILESDIR}"/${PN}-${PATCH_PV2}-afs.patch \
 		"${FILESDIR}"/${PN}-${PATCH_PV2}-cfitsio.patch \
 		"${FILESDIR}"/${PN}-${PATCH_PV2}-chklib64.patch \
-		"${FILESDIR}"/${PN}-${PATCH_PV2}-dotfont.patch \
-		"${FILESDIR}"/alienincdir.patch
+		"${FILESDIR}"/${PN}-${PATCH_PV2}-dotfont.patch
 
 	# make sure we use system libs and headers
 	rm montecarlo/eg/inc/cfortran.h README/cfortran.doc || die
@@ -215,6 +213,7 @@ src_configure() {
 	local myconfflags=""
 	use postgres && myconfflags+=" --with-pgsql-incdir=$(pg_config --includedir)"
 	# the configure script is not the standard autotools
+	# cling is disabled because in requires live llvm and clang
 	./configure \
 		--prefix="${EPREFIX}"/usr \
 		--etcdir="${EPREFIX}"/etc/root \
@@ -229,8 +228,8 @@ src_configure() {
 		--with-afs-shared=yes \
 		--with-sys-iconpath="${EPREFIX}"/usr/share/pixmaps \
 		--disable-builtin-afterimage \
-		--disable-builtin-freetype \
 		--disable-builtin-ftgl \
+		--disable-builtin-freetype \
 		--disable-builtin-glew \
 		--disable-builtin-pcre \
 		--disable-builtin-zlib \
@@ -249,8 +248,8 @@ src_configure() {
 		$(use_enable X asimage) \
 		$(use_enable X xft) \
 		$(use_enable afs) \
-		$(use_enable alien) \
 		$(use_enable avahi bonjour) \
+		$(use_enable c++0x c++11) \
 		$(use_enable fits fitsio) \
 		$(use_enable fftw fftw3) \
 		$(use_enable graphviz gviz) \
@@ -266,6 +265,7 @@ src_configure() {
 		$(use_enable mysql) \
 		$(use_enable odbc) \
 		$(use_enable opengl) \
+		$(use_enable oracle) \
 		$(use_enable postgres pgsql) \
 		$(use_enable prefix rpath) \
 		$(use_enable pythia6) \
@@ -276,6 +276,7 @@ src_configure() {
 		$(use_enable reflex cintex) \
 		$(use_enable reflex) \
 		$(use_enable ruby) \
+		$(use_enable sqlite) \
 		$(use_enable ssl) \
 		$(use_enable xml) \
 		$(use_enable xrootd) \
