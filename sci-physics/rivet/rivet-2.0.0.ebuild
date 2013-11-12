@@ -14,8 +14,11 @@ KEYWORDS="~amd64"
 IUSE=""
 
 DEPEND="sci-physics/yoda
-	dev-cpp/yaml-cpp"
+	dev-cpp/yaml-cpp
+	sci-physics/fastjet
+	sci-physics/hepmc
+	media-gfx/imagemagick
+	dev-texlive/texlive-pstricks"
 RDEPEND="${DEPEND}"
 
 S="${WORKDIR}/Rivet-${PV}"
-
