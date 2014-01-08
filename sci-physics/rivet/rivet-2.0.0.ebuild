@@ -22,3 +22,10 @@ DEPEND="sci-physics/yoda
 RDEPEND="${DEPEND}"
 
 S="${WORKDIR}/Rivet-${PV}"
+
+src_compile() {
+	# avoid sandbox violation by TeX font creation
+	export VARTEXFONTS="${T}/fonts"
+
+	default_src_compile
+}
