@@ -18,6 +18,8 @@ SRC_URI="
 	ftp://ftp.ncbi.nih.gov/toolbox/ncbi_tools++/ARCHIVE/${MY_PV}/ncbi_cxx--${MY_PV}.tar.gz"
 #	http://dev.gentoo.org/~jlec/distfiles/${PN}-${PV#0.}-asneeded.patch.xz"
 
+# should also install ftp://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz
+# see http://www.biostars.org/p/76551/ and http://blastedbio.blogspot.cz/2012/05/blast-tabular-missing-descriptions.html
 LICENSE="public-domain"
 SLOT="0"
 IUSE="
@@ -70,7 +72,7 @@ DEPEND="
 # USE flags which should be added somehow: wxWindows wxWidgets SP ORBacus ODBC OEChem sge
 
 
-# seems muParser is required, also glew is required. configure exitss otherwise
+# seems muParser is required, also glew is required. configure exits otherwise
 
 RDEPEND="${DEPEND}"
 
@@ -116,9 +118,8 @@ src_prepare() {
 	tc-export CXX CC
 
 	cd src/build-system || die
-	eautoreconf
-#	eaclocal -I.
-#	eautoconf
+#	eautoreconf
+	eautoconf
 }
 
 src_configure() {
@@ -258,9 +259,10 @@ src_configure() {
 
 	einfo "bash ./src/build-system/configure --srcdir="${S}" --prefix="${EPREFIX}/usr" --libdir=/usr/lib64 ${myconf[@]}"
 
-#	bash \
-#		./src/build-system/configure \
-	econf \
+#	ECONF_SOURCE="src/build-system" \
+#		econf \
+	bash \
+		./src/build-system/configure \
 		--srcdir="${S}" \
 		--prefix="${EPREFIX}/usr" \
 		--libdir=/usr/lib64 \
@@ -271,6 +273,7 @@ src_configure() {
 #		--without-static \
 #		--with-dll \
 #		--with-mt \
+#		--with-openmp \
 #		--with-lfs \
 #		--prefix="${ED}"/usr \
 #		--libdir="${ED}"/usr/$(get_libdir)/"${PN}" \

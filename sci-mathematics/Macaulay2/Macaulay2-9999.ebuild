@@ -8,25 +8,22 @@ PYTHON_COMPAT=( python{2_6,2_7} )
 
 inherit autotools elisp-common eutils flag-o-matic git-r3 python-single-r1 toolchain-funcs
 
-# Those packages will be built internally.
-FACTORY="factory-3-1-6"
-LIBFAC="libfac-3-1-6"
+FACTORY="factory-4.0.0+m4"
+FACTORY_GFTABLES="factory.4.0.1-gftables"
 
 DESCRIPTION="Research tool for commutative algebra and algebraic geometry"
 HOMEPAGE="http://www.math.uiuc.edu/Macaulay2/"
+BASE_URI="http://www.math.uiuc.edu/Macaulay2/Downloads/OtherSourceCode/trunk"
 SRC_URI="
-	ftp://www.mathematik.uni-kl.de/pub/Math/Singular/Libfac/${LIBFAC}.tar.gz
-	ftp://www.mathematik.uni-kl.de/pub/Math/Singular/Factory/factory-gftables.tar.gz
-	http://www.math.uiuc.edu/Macaulay2/Downloads/OtherSourceCode/trunk/${FACTORY}.tar.gz
-	http://www.math.uiuc.edu/Macaulay2/Extra/gtest-1.6.0.tar.gz
-	http://www.mathematik.uni-osnabrueck.de/normaliz/Normaliz2.8/Normaliz2.8.zip"
-# Need normaliz for an up to date normaliz.m2
+	${BASE_URI}/${FACTORY}.tar.gz
+	${BASE_URI}/${FACTORY_GFTABLES}.tar.gz
+	${BASE_URI}/gtest-1.7.0.tar.gz"
 EGIT_REPO_URI="git://github.com/Macaulay2/M2.git"
 
 SLOT="0"
 LICENSE="GPL-2"
 KEYWORDS=""
-IUSE="debug emacs optimization"
+IUSE="debug emacs +optimization"
 
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
@@ -68,12 +65,13 @@ S="${WORKDIR}/${PN}-${PV}/"
 RESTRICT="mirror"
 
 src_unpack (){
-	unpack "Normaliz2.8.zip"
+	# unpack "Normaliz2.8.zip"
 	git-r3_src_unpack
 	# Undo one level of directory until git allows to checkout
 	# subdirectories
 	mv "${S}"/M2/* "${S}" || die
-	rmdir "${S}"/M2 || die
+	# Need to get rid of this now because install wants this location later
+	rm -r "${S}/M2" || die
 }
 
 pkg_setup () {
@@ -85,9 +83,9 @@ pkg_setup () {
 
 src_prepare() {
 	# Put updated Normaliz.m2 in place
-	cp "${WORKDIR}/Normaliz2.8/Macaulay2/Normaliz.m2" \
-		"${S}/Macaulay2/packages" || die
-	dos2unix "${S}/Macaulay2/packages/Normaliz.m2" || die
+	# cp "${WORKDIR}/Normaliz2.8/Macaulay2/Normaliz.m2" \
+	# 	"${S}/Macaulay2/packages" || die
+	# dos2unix "${S}/Macaulay2/packages/Normaliz.m2" || die
 
 	# Patching .m2 files to look for external programs in
 	# /usr/bin
@@ -96,19 +94,16 @@ src_prepare() {
 	# Shortcircuit lapack tests
 	epatch "${FILESDIR}"/${PV}-lapack.patch
 
-	# Factory, and libfac are statically linked libraries which (in this flavor) are not used by any
-	# other program. We build them internally and don't install them
-	mkdir "${S}/BUILD/tarfiles" || die "Creation of directory failed"
+	# Factory is a statically linked library which (in this flavor) are not used by any
+	# other program. We build it internally and don't install it.
 	cp "${DISTDIR}/${FACTORY}.tar.gz" "${S}/BUILD/tarfiles/" \
 		|| die "copy failed"
-	cp "${DISTDIR}/factory-gftables.tar.gz" "${S}/BUILD/tarfiles/" \
-		|| die "copy failed"
-	cp "${DISTDIR}/${LIBFAC}.tar.gz" "${S}/BUILD/tarfiles/" \
+	cp "${DISTDIR}/${FACTORY_GFTABLES}.tar.gz" "${S}/BUILD/tarfiles/" \
 		|| die "copy failed"
 	# Macaulay2 developers want that gtest is built internally because
 	# the documentation says it may fail if build with options not the
 	# same as the tested program.
-	cp "${DISTDIR}/gtest-1.6.0.tar.gz" "${S}/BUILD/tarfiles/" \
+	cp "${DISTDIR}/gtest-1.7.0.tar.gz" "${S}/BUILD/tarfiles/" \
 		|| die "copy failed"
 
 	eautoreconf
@@ -126,9 +121,10 @@ src_configure (){
 		--prefix="${D}/usr" \
 		--disable-encap \
 		--disable-strip \
+		--with-issue=Gentoo \
 		$(use_enable optimization optimize) \
 		$(use_enable debug) \
-		--enable-build-libraries="factory libfac" \
+		--enable-build-libraries="factory" \
 		--with-unbuilt-programs="4ti2 gfan normaliz nauty cddplus lrslib" \
 		|| die "failed to configure Macaulay"
 }

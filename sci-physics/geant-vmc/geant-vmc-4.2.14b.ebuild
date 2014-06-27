@@ -18,7 +18,7 @@ KEYWORDS="~amd64 ~x86 ~amd64-linux ~x86-linux"
 IUSE="doc examples vgm"
 
 RDEPEND="
-	sci-physics/root
+	sci-physics/root:=
 	>=sci-physics/geant-4.9.6[opengl,geant3,examples?]
 	<sci-physics/geant-4.10.00
 	vgm? ( sci-physics/vgm )"
@@ -51,7 +51,7 @@ src_test() {
 
 src_install() {
 	dolib.so lib/tgt_*/{libg4root,libgeant4vmc}.so
-	doheader include/*
+	doheader -r include/*
 	dodoc README history version_number
 	use doc && dohtml -r Geant4VMC.html doc/*
 	if use examples; then

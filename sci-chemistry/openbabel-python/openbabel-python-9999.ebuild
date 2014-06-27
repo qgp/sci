@@ -4,7 +4,7 @@
 
 EAPI=5
 
-PYTHON_COMPAT=( python{2_6,2_7,3_2,3_3} )
+PYTHON_COMPAT=( python{2_7,3_2,3_3,3_4} )
 
 inherit cmake-utils eutils git-r3 multilib python-r1
 
@@ -27,8 +27,6 @@ RDEPEND="${PYTHON_DEPS}
 DEPEND="${RDEPEND}
 	>=dev-util/cmake-2.4.8
 	>=dev-lang/swig-2"
-
-S="${WORKDIR}"/openbabel-${PV}
 
 src_prepare() {
 	cmake-utils_src_prepare

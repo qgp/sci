@@ -17,7 +17,7 @@ if [[ $PV = *9999* ]]; then
 		git://github.com/gromacs/gromacs.git
 		http://repo.or.cz/r/gromacs.git"
 	EGIT_BRANCH="release-4-6"
-	inherit git-r3
+	inherit git-2
 	LIVE_DEPEND="doc? (
 		app-doc/doxygen
 		dev-texlive/texlive-latex
@@ -42,7 +42,7 @@ HOMEPAGE="http://www.gromacs.org/"
 #        base,    vmd plugins, fftpack from numpy,  blas/lapck from netlib,        memtestG80 library,  mpi_thread lib
 LICENSE="LGPL-2.1 UoI-NCSA !mkl? ( !fftw? ( BSD ) !blas? ( BSD ) !lapack? ( BSD ) ) cuda? ( LGPL-3 ) threads? ( BSD )"
 SLOT="0/${PV}"
-KEYWORDS="~alpha ~amd64 ~arm ~ppc64 ~sparc ~x86 ~amd64-linux ~x86-linux ~x86-macos"
+KEYWORDS=""
 IUSE="X blas cuda doc -double-precision +fftw gsl lapack mkl mpi +offensive openmm openmp +single-precision test +threads zsh-completion ${ACCE_IUSE}"
 
 CDEPEND="
@@ -87,18 +87,18 @@ src_unpack() {
 	if [[ ${PV} != *9999 ]]; then
 		default
 	else
-		git-r3_src_unpack
+		git-2_src_unpack
 		if use doc; then
 			EGIT_REPO_URI="git://git.gromacs.org/manual.git" \
 			EGIT_BRANCH="release-4-6" EGIT_NOUNPACK="yes" EGIT_COMMIT="release-4-6" \
 			EGIT_SOURCEDIR="${WORKDIR}/manual"\
-				git-r3_src_unpack
+				git-2_src_unpack
 		fi
 		if use test; then
 			EGIT_REPO_URI="git://git.gromacs.org/regressiontests.git" \
-			EGIT_BRANCH="master" EGIT_NOUNPACK="yes" EGIT_COMMIT="master" \
+			EGIT_BRANCH="master" EGIT_NOUNPACK="yes" EGIT_COMMIT="release-4-6" \
 			EGIT_SOURCEDIR="${WORKDIR}/regressiontests"\
-				git-r3_src_unpack
+				git-2_src_unpack
 		fi
 	fi
 }

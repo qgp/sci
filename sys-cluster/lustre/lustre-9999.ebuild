@@ -6,6 +6,15 @@ EAPI=5
 
 WANT_AUTOCONF="2.5"
 WANT_AUTOMAKE="1.10"
+WANT_LIBTOOL="latest"
+
+if [[ $PV = *9999* ]]; then
+	KEYWORDS=""
+	EGIT_BRANCH="master"
+else
+	KEYWORDS="~amd64"
+	EGIT_TAG="${PV}"
+fi
 
 inherit git-r3 autotools linux-mod toolchain-funcs udev flag-o-matic
 
@@ -16,7 +25,6 @@ EGIT_REPO_URI="git://git.whamcloud.com/fs/lustre-release.git"
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS=""
 IUSE="+client +utils server liblustre readline tests tcpd +urandom"
 
 RDEPEND="
@@ -33,24 +41,10 @@ DEPEND="${RDEPEND}
 	virtual/linux-sources"
 
 PATCHES=(
-	"${FILESDIR}/0001-LU-2982-build-make-AC-check-for-linux-arch-sandbox-f.patch"
-	"${FILESDIR}/0002-LU-3373-ldiskfs-ldiskfs-patches-for-3.11.1-fc19.patch"
-	"${FILESDIR}/0003-LU-3974-llite-dentry-d_compare-changes-in-3.11.patch"
-	"${FILESDIR}/0004-LU-3974-llite-use-new-struct-dir_context.patch"
-	"${FILESDIR}/0005-LU-3974-llite-invalidatepage-api-changed.patch"
-	"${FILESDIR}/0006-LU-3319-procfs-move-llite-proc-handling-over-to-seq_.patch"
-	"${FILESDIR}/0007-LU-3319-procfs-move-lmv-proc-handling-over-to-seq_fi.patch"
-	"${FILESDIR}/0008-LU-3319-procfs-move-ldlm-proc-handling-over-to-seq_f.patch"
-	"${FILESDIR}/0009-LU-3319-procfs-move-ost-proc-handling-over-to-seq_fi.patch"
-	"${FILESDIR}/0010-LU-3319-procfs-update-shared-server-side-core-proc-h.patch"
-	"${FILESDIR}/0011-LU-3319-procfs-update-zfs-proc-handling-to-seq_files.patch"
-	"${FILESDIR}/0012-LU-3319-procfs-move-mgs-proc-handling-to-seq_files.patch"
-	"${FILESDIR}/0013-LU-3319-procfs-move-ofd-proc-handling-to-seq_files.patch"
-	"${FILESDIR}/0014-LU-3319-procfs-move-lod-proc-handling-to-seq_files.patch"
-	"${FILESDIR}/0015-LU-3319-procfs-move-osp-proc-handling-to-seq_files.patch"
-	"${FILESDIR}/0016-LU-3319-procfs-move-mdt-mds-proc-handling-to-seq_fil.patch"
-	"${FILESDIR}/0017-LU-3319-procfs-move-mdd-proc-handling-to-seq_files.patch"
-	"${FILESDIR}/0018-LU-3319-procfs-update-ldiskfs-proc-handling-to-seq_f.patch"
+	"${FILESDIR}/0001-LU-3319-procfs-update-zfs-proc-handling-to-seq_files.patch"
+	"${FILESDIR}/0002-LU-3319-procfs-move-mdd-ofd-proc-handling-to-seq_fil.patch"
+	"${FILESDIR}/0003-LU-4416-mm-Backport-shrinker-changes-from-upstream.patch"
+	"${FILESDIR}/lustre-readline6.3_fix.patch"
 )
 
 pkg_setup() {
@@ -70,6 +64,7 @@ src_prepare() {
 	for dir in $DIRS ; do
 		ACLOCAL_FLAGS="$ACLOCAL_FLAGS -I $dir/autoconf"
 	done
+	_elibtoolize -q
 	eaclocal -I config $ACLOCAL_FLAGS
 	eautoheader
 	eautomake

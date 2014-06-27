@@ -4,7 +4,7 @@
 
 EAPI=5
 
-PYTHON_COMPAT=( python{2_6,2_7} )
+PYTHON_COMPAT=( python2_7 )
 
 AUTOTOOLS_AUTORECONF="true"
 
@@ -23,7 +23,7 @@ ESVN_REPO_URI="http://coot.googlecode.com/svn/trunk"
 
 SLOT="0"
 LICENSE="GPL-3"
-KEYWORDS="~amd64 ~x86 ~amd64-linux ~x86-linux"
+KEYWORDS=""
 IUSE="+openmp static-libs test"
 
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
@@ -117,7 +117,6 @@ src_configure() {
 		--with-guile
 		--with-python="${EPREFIX}/usr"
 		--with-guile-gtk
-		--with-gtk2
 		--with-pygtk
 		$(use_enable openmp)
 		)
@@ -126,13 +125,11 @@ src_configure() {
 
 src_compile() {
 	autotools-utils_src_compile
-	python_fix_shebang "${S}"/src/coot_gtk2.py
 	cp "${S}"/src/coot_gtk2.py python/coot.py || die
 }
-
 src_test() {
 	source "${EPREFIX}/etc/profile.d/40ccp4.setup.sh"
-	mkdir "${T}"/coot_test
+	mkdir "${T}"/coot_test || die
 
 	export COOT_STANDARD_RESIDUES="${S}/standard-residues.pdb"
 	export COOT_SCHEME_DIR="${S}/scheme/"

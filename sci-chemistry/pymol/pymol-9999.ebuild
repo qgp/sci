@@ -10,13 +10,13 @@ PYTHON_REQ_USE="tk"
 inherit distutils-r1 fdo-mime subversion versionator
 
 DESCRIPTION="A Python-extensible molecular graphics system"
-HOMEPAGE="http://pymol.sourceforge.net/"
+HOMEPAGE="http://www.pymol.org/"
 SRC_URI="http://dev.gentoo.org/~jlec/distfiles/${PN}-1.7.0.0.png.xz"
 ESVN_REPO_URI="svn://svn.code.sf.net/p/pymol/code/trunk/pymol"
 
 LICENSE="PSF-2.2"
 SLOT="0"
-KEYWORDS="~amd64 ~ppc ~x86 ~amd64-linux ~x86-linux ~x64-macos ~x86-macos"
+KEYWORDS=""
 IUSE="apbs web"
 
 DEPEND="
@@ -30,7 +30,6 @@ DEPEND="
 	sys-libs/zlib
 	media-libs/freeglut
 	apbs? (
-		dev-libs/maloc
 		sci-chemistry/apbs
 		sci-chemistry/pdb2pqr
 		sci-chemistry/pymol-apbs-plugin[${PYTHON_USEDEP}]

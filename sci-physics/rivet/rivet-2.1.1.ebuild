@@ -4,28 +4,59 @@
 
 EAPI=5
 
-DESCRIPTION="Rivet"
-HOMEPAGE="http://rivet.hepforge.org"
-SRC_URI="http://www.hepforge.org/archive/rivet/Rivet-2.1.1.tar.gz"
+AUTOTOOLS_IN_SOURCE_BUILD=1
+AUTOTOOLS_AUTORECONF=1
+PYTHON_COMPAT=( python2_7 )
 
+inherit python-single-r1 autotools-utils bash-completion-r1
+
+MYP=Rivet-${PV}
+
+DESCRIPTION="Toolkit for validation of Monte Carlo HEP event generators"
+HOMEPAGE="http://rivet.hepforge.org/"
+
+SRC_URI="http://www.hepforge.org/archive/${PN}/${MYP}.tar.bz2"
 LICENSE="GPL-2"
+
 SLOT="0"
-KEYWORDS="~amd64"
-IUSE=""
+KEYWORDS="~amd64 ~x86 ~amd64-linux ~x86-linux"
+IUSE="doc python static-libs"
 
-DEPEND="sci-physics/yoda
-	dev-cpp/yaml-cpp
-	sci-physics/fastjet
-	sci-physics/hepmc
-	media-gfx/imagemagick
-	dev-texlive/texlive-pstricks"
-RDEPEND="${DEPEND}"
+RDEPEND="
+	dev-libs/boost:0=
+	sci-libs/gsl:0=
+	sci-physics/fastjet:0=[plugins]
+	sci-physics/hepmc:0=
+	sci-physics/yoda:0=[python]
+	python? ( ${PYTHON_DEPS} )"
+DEPEND="${RDEPEND}
+	doc? ( app-doc/doxygen[latex,dot] )
+	python? ( dev-python/cython[${PYTHON_USEDEP}] )"
 
-S="${WORKDIR}/Rivet-${PV}"
+REQUIRED_USE="python? ( ${PYTHON_REQUIRED_USE} )"
+
+S="${WORKDIR}/${MYP}"
+
+#PATCHES=( "${FILESDIR}"/${P}-system-yaml-cpp.patch )
+
+pkg_setup() {
+	use python && python-single-r1_pkg_setup
+}
+
+src_configure() {
+	local myeconfargs=(
+		$(use_enable python pyext)
+	)
+	autotools-utils_src_configure
+}
 
 src_compile() {
-	# avoid sandbox violation by TeX font creation
-	export VARTEXFONTS="${T}/fonts"
+	autotools-utils_src_compile
+	use doc && doxygen Doxyfile
+}
 
-	default_src_compile
+src_install() {
+	autotools-utils_src_install
+	newbashcomp "${ED}"/usr/share/Rivet/rivet-completion rivet
+	use doc && dohtml -r doxy/html/* && dodoc doc/rivet-manual.pdf
 }

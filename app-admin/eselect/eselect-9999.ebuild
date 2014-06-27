@@ -4,7 +4,6 @@
 
 EAPI=5
 
-
 EGIT_REPO_URI="git://github.com/gentoo-science/eselect.git"
 EGIT_BRANCH="alternatives"
 
