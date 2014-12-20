@@ -1,6 +1,6 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/sci-biology/emboss/emboss-6.3.1_p4.ebuild,v 1.2 2011/03/09 16:29:05 jlec Exp $
+# $Header: $
 
 EAPI="4"
 
@@ -28,6 +28,7 @@ PDEPEND+="
 		sci-biology/prosite
 		sci-biology/rebase
 		sci-biology/transfac
+		sci-libs/plplot
 		)"
 
 S="${WORKDIR}"/EMBOSS-${EBOV}
@@ -41,15 +42,20 @@ src_prepare() {
 	epatch "${WORKDIR}"/${PF}.patch
 	epatch "${FILESDIR}/${PF}"_plcol.patch
 	epatch "${FILESDIR}/${PF}"_compilations-paths.patch
+	epatch "${FILESDIR}/${PF}"_rename_plwid_to_plwidth.patch
 	# cp "${FILESDIR}"/ax_lib_mysql.m4 "${S}"/m4/mysql.m4
 	emboss_src_prepare
 	autoreconf -vfi
 	epatch "${FILESDIR}/${PF}"_libtool.patch
 }
 
-src_compile() {
-	epatch "${FILESDIR}/${PF}"_Makefile.patch
-}
+#src_compile() {
+#	# epatch "${FILESDIR}/${PF}"_Makefile.patch
+#	sed -i -e "s#GD_LIBS = .*#GD_LIBS =#" Makefile
+#	sed -i -e "s#^LIBS = .*#LIBS =#" Makefile
+#	sed -i -e "s#^PLPLOT_LIBS = .*#PLPLOT_LIBS =#" Makefile
+#	sed -i -e "s#^libnucleus_la_LDFLAGS = .*#libnucleus_la_LDFLAGS = \$(LDFLAGS)#" Makefile
+#}
 
 src_install() {
 	default

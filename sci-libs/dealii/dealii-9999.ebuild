@@ -1,32 +1,25 @@
-# Copyright 2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
 EAPI=5
 
-if [[ ${PV} == "9999" ]] ; then
-	inherit cmake-utils subversion eutils multilib
-else
-	inherit cmake-utils eutils multilib
-fi
+inherit cmake-utils eutils multilib git-r3
 
-DESCRIPTION="library for solving partial differential equations with the finite element method"
+DESCRIPTION="Solving partial differential equations with the finite element method"
 HOMEPAGE="http://www.dealii.org/"
 
-if [[ ${PV} == "9999" ]] ; then
-	ESVN_REPO_URI="https://svn.dealii.org/trunk/deal.II"
-	ESVN_OPTIONS="--trust-server-cert --non-interactive"
-	KEYWORDS=""
-else
-	SRC_URI="https://dealii.googlecode.com/files/deal.II-${PV}.tar.gz
-		doc? ( https://dealii.googlecode.com/files/deal.offlinedoc-${PV}.tar.gz )"
-	S="${WORKDIR}/deal.II"
-	KEYWORDS="~amd64 ~x86 ~amd64-linux ~x86-linux"
-fi
+EGIT_REPO_URI="git://github.com/dealii/dealii.git"
+KEYWORDS=""
 
 LICENSE="LGPL-2.1+"
 SLOT="0"
-IUSE="arpack avx +debug doc +examples hdf5 +lapack mesh_converter metis mpi mumps netcdf p4est parameter_gui petsc +sparse sse2 static-libs +tbb trilinos +zlib"
+IUSE="
+	arpack avx c++11 +debug doc +examples hdf5 +lapack mesh_converter metis
+	mpi mumps muparser netcdf p4est parameter_gui petsc +sparse sse2
+	static-libs +tbb trilinos +zlib
+"
+
 # TODO: add slepc use flag once slepc is packaged for gentoo-science
 REQUIRED_USE="
 	mumps? ( mpi lapack )
@@ -37,12 +30,12 @@ REQUIRED_USE="
 RDEPEND="
 	dev-libs/boost
 	arpack? ( sci-libs/arpack[mpi=] )
-	doc? ( app-doc/doxygen[dot] dev-lang/perl )
 	hdf5? ( sci-libs/hdf5[mpi=] )
 	lapack? ( virtual/lapack )
 	metis? ( >=sci-libs/parmetis-4 )
 	mpi? ( virtual/mpi )
 	mumps? ( sci-libs/mumps[mpi] )
+	muparser? ( dev-cpp/muParser )
 	netcdf? ( || ( <sci-libs/netcdf-4.2[cxx] sci-libs/netcdf-cxx ) )
 	p4est? ( sci-libs/p4est[mpi] )
 	parameter_gui? ( dev-qt/qtgui )
@@ -56,14 +49,10 @@ RDEPEND="
 DEPEND="
 	${RDEPEND}
 	virtual/pkgconfig
+	doc? ( app-doc/doxygen[dot] dev-lang/perl )
 "
 
 src_configure() {
-
-	if [[ ${PV} == "9999" ]] ; then
-		subversion_wc_info
-		local live_version="-DDEAL_II_PACKAGE_VERSION=99.99.svn${ESVN_WC_REVISION}"
-	fi
 
 	if use debug; then
 		CMAKE_BUILD_TYPE="DebugRelease"
@@ -72,12 +61,20 @@ src_configure() {
 	fi
 
 	local mycmakeargs=(
-		${live_version}
-		"-DDEAL_II_ALLOW_AUTODETECTION=OFF"
-		"-DDEAL_II_ALLOW_BUNDLED=OFF"
-		"-DDEAL_II_ALLOW_PLATFORM_INTROSPECTION=OFF"
+		-DDEAL_II_PACKAGE_VERSION=99.99
+		-DDEAL_II_ALLOW_AUTODETECTION=OFF
+		-DDEAL_II_ALLOW_BUNDLED=OFF
+		-DDEAL_II_ALLOW_PLATFORM_INTROSPECTION=OFF
+		-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF
+		-DDEAL_II_COMPONENT_COMPAT_FILES=OFF
+		-DDEAL_II_CMAKE_MACROS_RELDIR=share/${PN}/cmake/macros
+		-DDEAL_II_DOCHTML_RELDIR=share/doc/${PF}/html
+		-DDEAL_II_DOCREADME_RELDIR=share/doc/${PF}/
+		-DDEAL_II_EXAMPLES_RELDIR=share/doc/${PF}/examples
+		-DDEAL_II_LIBRARY_RELDIR=$(get_libdir)
 		$(cmake-utils_use arpack DEAL_II_WITH_ARPACK)
 		$(cmake-utils_use avx DEAL_II_HAVE_AVX)
+		$(cmake-utils_use c++11 DEAL_II_WITH_CXX11)
 		$(cmake-utils_use doc DEAL_II_COMPONENT_DOCUMENTATION)
 		$(cmake-utils_use examples DEAL_II_COMPONENT_EXAMPLES)
 		$(cmake-utils_use hdf5 DEAL_II_WITH_HDF5)
@@ -86,6 +83,7 @@ src_configure() {
 		$(cmake-utils_use metis DEAL_II_WITH_METIS)
 		$(cmake-utils_use mpi DEAL_II_WITH_MPI)
 		$(cmake-utils_use mumps DEAL_II_WITH_MUMPS)
+		$(cmake-utils_use muparser DEAL_II_WITH_MUPARSER)
 		$(cmake-utils_use netcdf DEAL_II_WITH_NETCDF)
 		$(cmake-utils_use p4est DEAL_II_WITH_P4EST)
 		$(cmake-utils_use parameter_gui DEAL_II_COMPONENT_PARAMETER_GUI)
@@ -97,30 +95,13 @@ src_configure() {
 		$(cmake-utils_use tbb DEAL_II_WITH_THREADS)
 		$(cmake-utils_use trilinos DEAL_II_WITH_TRILINOS)
 		$(cmake-utils_use zlib DEAL_II_WITH_ZLIB)
-		"-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF"
-		"-DDEAL_II_COMPONENT_COMPAT_FILES=OFF"
-		"-DDEAL_II_CMAKE_MACROS_RELDIR=share/${PN}/cmake/macros"
-		"-DDEAL_II_DOCHTML_RELDIR=share/doc/${PF}/html"
-		"-DDEAL_II_DOCREADME_RELDIR=share/doc/${PF}/"
-		"-DDEAL_II_EXAMPLES_RELDIR=share/doc/${PF}/examples"
-		"-DDEAL_II_LIBRARY_RELDIR=$(get_libdir)"
 		)
 	cmake-utils_src_configure
 }
 
 src_install() {
-	dodoc README
+	DOCS=( README.md )
 
-	if use doc; then
-		if [[ ${PV} != "9999" ]] ; then
-			# copy missing images to the build directory:
-			cp -r "${WORKDIR}"/doc/doxygen/deal.II/images "${BUILD_DIR}"/doc/doxygen/deal.II
-			# replace links:
-			sed -i \
-				's#"http://www.dealii.org/images/steps/developer/\(step-.*\)"#"images/\1"#g' \
-				"${BUILD_DIR}"/doc/doxygen/deal.II/step_*.html || die "sed failed"
-		fi
-	fi
 	cmake-utils_src_install
 
 	# unpack the installed example sources:

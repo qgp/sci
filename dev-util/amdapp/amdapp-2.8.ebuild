@@ -1,4 +1,4 @@
-# Copyright 2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -29,8 +29,7 @@ RDEPEND="
 	sys-devel/gcc
 	media-libs/mesa
 	media-libs/freeglut
-	|| ( dev-util/opencl-headers dev-util/nvidia-cuda-toolkit
-		>=x11-drivers/ati-drivers-11.12[opencl] )
+	virtual/opencl
 	examples? ( media-libs/glew )
 	app-admin/eselect-opencl"
 DEPEND="

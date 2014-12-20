@@ -1,6 +1,34 @@
 # ChangeLog for sci-physics/abinit
-# Copyright 1999-2013 Gentoo Foundation; Distributed under the GPL v2
+# Copyright 1999-2014 Gentoo Foundation; Distributed under the GPL v2
 # $Header: $
+
+*abinit-7.6.4-r1 (10 Dec 2014)
+*abinit-7.4.2-r1 (10 Dec 2014)
+
+  10 Dec 2014; Honza Macháček <Hloupy.Honza@centrum.cz> -abinit-7.4.2.ebuild,
+  +abinit-7.4.2-r1.ebuild, -abinit-7.6.4.ebuild, +abinit-7.6.4-r1.ebuild,
+  +files/7.6.4-cuda_header.patch, +files/7.6.4-libxc_versions.patch:
+  Treated a small problem with CUDA in sci-physics/abinit, corrected its
+  dependency on sci-libs/libxs versions.
+
+  17 Sep 2014; Christoph Junghans <ottxor@gentoo.org> metadata.xml:
+  updated metadata.xml
+
+  10 Jul 2014; Honza Macháček <Hloupy.Honza@centrum.cz>
+  +files/7.6.3-libabinit_options.patch:
+  Added forgotten patch file 7.6.3-libabinit_options.patch for sci-
+  physics/abinit
+
+*abinit-7.6.4 (27 Jun 2014)
+
+  27 Jun 2014; Honza Macháček <Hloupy.Honza@centrum.cz> +abinit-7.6.4.ebuild,
+  metadata.xml:
+  Version bumped to 7.6.4. ScaLAPACK support, and use of the MPI implementation
+  of sci-libs/fftw added. Minor attempts on enhancements and cleanup.
+
+  10 Oct 2013; Honza Macháček <Hloupy.Honza@centrum.cz> abinit-7.4.2.ebuild,
+  +files/7.4.2-cuda_link_stdc++.patch:
+  Added a patch to link libstdc++ with the C++ CUDA objects.
 
   03 Oct 2013; Honza Macháček <Hloupy.Honza@centrum.cz> abinit-7.4.2.ebuild:
   Call python_fix_shebang only conditionally, if USE test (does not work

@@ -1,22 +1,25 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
 EAPI=5
+
+CMAKE_MAKEFILE_GENERATOR="ninja"
 
 inherit bash-completion-r1 cmake-utils multilib
 
 IUSE="doc examples extras +gromacs"
 PDEPEND="extras? ( =sci-chemistry/${PN}apps-${PV} )"
 if [ "${PV}" != "9999" ]; then
-	SRC_URI="http://votca.googlecode.com/files/${PF}.tar.gz
-		doc? ( http://votca.googlecode.com/files/${PN}-manual-${PV}.pdf )
-		examples? (	http://votca.googlecode.com/files/${PN}-tutorials-${PV}.tar.gz )"
-	RESTRICT="primaryuri"
+	SRC_URI="http://downloads.votca.googlecode.com/hg/${P}.tar.gz
+		doc? ( http://downloads.votca.googlecode.com/hg/${PN}-manual-${PV}.pdf )
+		examples? (	http://downloads.votca.googlecode.com/hg/${PN}-tutorials-${PV}.tar.gz )"
+	KEYWORDS="~amd64 ~x86 ~amd64-linux ~x86-macos"
 else
 	SRC_URI=""
 	inherit mercurial
 	EHG_REPO_URI="https://code.google.com/p/votca.csg/"
+	KEYWORDS=""
 fi
 
 DESCRIPTION="Votca coarse-graining engine"
@@ -24,7 +27,6 @@ HOMEPAGE="http://www.votca.org"
 
 LICENSE="Apache-2.0"
 SLOT="0"
-KEYWORDS="~amd64 ~x86 ~amd64-linux ~x86-macos"
 
 RDEPEND="=sci-libs/votca-tools-${PV}
 	gromacs? ( sci-chemistry/gromacs:= )
@@ -84,8 +86,12 @@ src_configure() {
 }
 
 src_install() {
-	newbashcomp scripts/csg-completion.bash ${PN}
 	cmake-utils_src_install
+	newbashcomp scripts/csg-completion.bash csg_call
+	for i in "${ED}"/usr/bin/csg_*; do
+		[[ ${i} = *csg_call ]] && continue
+		bashcomp_alias csg_call "${i##*/}"
+	done
 	if use doc; then
 		if [[ ${PV} = *9999* ]]; then
 			pushd "${WORKDIR}"/manual
@@ -98,7 +104,7 @@ src_install() {
 			dodoc "${DISTDIR}/${PN}-manual-${PV}.pdf"
 		fi
 		cd "${CMAKE_BUILD_DIR}" || die
-		emake html
+		cmake-utils_src_make html
 		dohtml -r share/doc/html/*
 	fi
 	if use examples; then

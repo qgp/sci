@@ -1,10 +1,10 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
 EAPI=5
 
-inherit cmake-utils eutils git-2 perl-module
+inherit cmake-utils eutils git-r3 perl-module
 
 DESCRIPTION="Perl bindings for OpenBabel"
 HOMEPAGE="http://openbabel.sourceforge.net/"
@@ -22,22 +22,21 @@ DEPEND="${RDEPEND}
 	>=dev-util/cmake-2.4.8
 	>=dev-lang/swig-2"
 
-S="${WORKDIR}/openbabel-${PV}"
-
 src_unpack() {
-	git-2_src_unpack
+	git-r3_src_unpack
 }
 
 src_configure() {
 	perl_set_version
-	local mycmakeargs="${mycmakeargs}
+	local mycmakeargs=(
 		-DCMAKE_INSTALL_RPATH=
 		-DBINDINGS_ONLY=ON
-		-DBABEL_SYSTEM_LIBRARY=${EPREFIX}/usr/$(get_libdir)/libopenbabel.so
-		-DOB_MODULE_PATH=${EPREFIX}/usr/$(get_libdir)/openbabel/${PV}
-		-DLIB_INSTALL_DIR=${ED}/${VENDOR_ARCH}
+		-DBABEL_SYSTEM_LIBRARY="${EPREFIX}"/usr/$(get_libdir)/libopenbabel.so
+		-DOB_MODULE_PATH="${EPREFIX}"/usr/$(get_libdir)/openbabel/${PV}
+		-DLIB_INSTALL_DIR="${ED}/${VENDOR_ARCH}"
 		-DPERL_BINDINGS=ON
-		-DRUN_SWIG=ON"
+		-DRUN_SWIG=ON
+	)
 
 	cmake-utils_src_configure
 }

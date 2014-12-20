@@ -1,4 +1,4 @@
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -6,21 +6,28 @@ EAPI=5
 
 PYTHON_COMPAT=( python{2_6,2_7} )
 
-inherit cmake-utils git-2 python-single-r1
+inherit cmake-utils git-r3 python-single-r1
 
 DESCRIPTION="Biochemical Algorithms Library"
 HOMEPAGE="http://www.ball-project.org/"
 SRC_URI=""
-EGIT_REPO_URI="https://bitbucket.org/ball/ball.git"
+EGIT_REPO_URI="http://bitbucket.org/ball/ball.git"
 
 SLOT="0"
 LICENSE="LGPL-2 GPL-3"
 KEYWORDS=""
-IUSE="cuda mpi +python sql +threads +webkit"
+IUSE="cuda mpi +python sql test +threads +webkit"
+
+REQUIRED_USE="python? ( ${PYTHON_REQUIRED_USE} )"
 
 RDEPEND="
 	dev-cpp/eigen:3
 	dev-libs/boost
+	dev-qt/qtcore:4
+	dev-qt/qtgui:4
+	dev-qt/qtopengl:4
+	dev-qt/qttest:4
+	dev-qt/qtwebkit:4
 	media-libs/glew
 	sci-libs/fftw:3.0[threads?]
 	sci-libs/gsl
@@ -28,14 +35,10 @@ RDEPEND="
 	sci-mathematics/lpsolve
 	virtual/opengl
 	x11-libs/libX11
-	dev-qt/qtcore:4
-	dev-qt/qtgui:4
-	dev-qt/qtopengl:4
-	dev-qt/qttest:4
 	cuda? ( dev-util/nvidia-cuda-toolkit )
 	mpi? ( virtual/mpi )
-	sql? ( dev-qt/qtsql:4 )
 	python? ( ${PYTHON_DEPS} )
+	sql? ( dev-qt/qtsql:4 )
 	webkit? ( dev-qt/qtwebkit:4 )"
 DEPEND="${RDEPEND}
 	dev-python/sip
@@ -44,7 +47,6 @@ DEPEND="${RDEPEND}
 
 PATCHES=(
 	"${FILESDIR}"/${P}-multilib.patch
-	"${FILESDIR}"/${P}-libsvm.patch
 	)
 
 pkg_setup() {
@@ -61,4 +63,14 @@ src_configure() {
 		$(cmake-utils_use python BALL_PYTHON_SUPPORT)
 	)
 	cmake-utils_src_configure
+	local i
+	for i in "${S}"/data/*; do
+		ln -sf "${i}" "${BUILD_DIR}"/source/TEST/ || die
+		ln -sf "${i}" "${S}"/source/TEST/ || die
+	done
+}
+
+src_compile() {
+	cmake-utils_src_compile
+	use test && cmake-utils_src_make build_tests
 }
